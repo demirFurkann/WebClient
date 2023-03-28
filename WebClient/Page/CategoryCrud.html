@@ -1,0 +1,318 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+
+    <link href="../Content/bootstrap.css" rel="stylesheet" />
+
+    <script src="../Scripts/jquery-3.6.4.js"></script>
+
+    <script src="../Scripts/bootstrap.js"></script>
+
+    <style>
+        .genislik {
+            width: 300px;
+        }
+    </style>
+
+</head>
+<body>
+
+
+
+    <div class="container">
+        <div class="row">
+
+            <div class="col-6">
+
+                ID => <input type="text" class="form-control genislik" id="txtID" placeholder="ID giriniz" />
+                Name => <input type="text" class="form-control genislik" id="txtName" placeholder="Kategori İsmi" />
+                Description => <input type="text" class="form-control genislik" id="txtDesc" placeholder="Aciklama" />
+
+                <hr />
+
+                <input type="button" id="btnAll" class="btn btn-info" value="Kategorileri Getir" />
+                <input type="button" id="btnID" class="btn btn-primary" value="Kategori getir" />
+
+                <hr />
+
+                <input type="button" id="btnAdd" class="btn btn-info" value="Kategori ekle" />
+                <input type="button" id="btnDelete" class="btn btn-danger" value="Kategori sil" />
+                <input type="button" id="btnUpdate" class="btn btn-warning" value="Kategori Güncelle" />
+
+
+                <hr />
+
+                <input type="text" id="txtSearch" class="form-control genislik" placeholder="Arama yapınız" />
+
+            </div>
+
+            <div class="col-6">
+
+
+                <table id="tab1" class="table table-hover">
+
+                    <tr>
+                        <th>Kategori ID</th>
+                        <th>Kategori Ismi</th>
+                        <th>Kategori Acıklaması</th>
+                    </tr>
+                </table>
+
+
+            </div>
+
+
+
+        </div>
+    </div>
+
+    <!-- Ulasmak istedigimiz API URL'i  =>      http://localhost:50759/                -->
+
+
+    <script>
+
+        //Bu fonksiyonumuz Table'imizdaki ilk tr dısındaki tüm tr'leri temizliyor...
+
+        function ControlHeader() {
+            //Jquery kullanma sembolü $ sembolüdür... Biz bu sembolü kullandıgımız anda Jquery kullandıgımızı belirtiyoruz
+
+
+            $("#tab1").find("tr:gt(0)").remove(); //burada tr:gt(0) ifadesi : "Table row must be greater than zero" demektir ki tr'sinin index'i 0'dan büyük olan tüm tr'leri bul ve sil anlamına gelir...
+        }
+
+
+        //Bu fonksiyonumuzun amacı API'ya gittigimiz ve veri aldıgımı zaman o verileri tablomuzun icerisine entegre etmektir...
+
+        //List halinde gelen veriyi tasarımımıza entegre etmek icin bir fonksiyon tasarlıyoruz
+
+        function BringDataList(dataList) {
+            ControlHeader();
+
+            //JavaScript'te her eylem bir fonksiyondur...Anlık eylemler ise Anonymus Function'lar olarak acılır
+
+            $.each(dataList, function (key, data) {
+
+                $("#tab1").append("<tr>  <td>  " + data.ID + "    </td> <td> " + data.CategoryName + " </td>     <td>" + data.Description + "</td>   <td> <button data-id='" + data.ID + "' value='update' id='btnUpdate" + data.ID + "'  class='btn btn-warning'> Güncelle </button> </td> <td> <button class='btn btn-danger' data-id='" + data.ID + "' value='delete'> Sil </button> </td> <td> <button class='btn btn-primary' data-id='" + data.ID + "' value='select' > Sec   </button> </td>  </tr>");
+
+
+
+            })
+        }
+
+
+        //Bu fonksiyonumuzun amacı API'ya gittigimiz zaman aldığımız tekil veriyi tasarımda tablomuzun icerisine entegre etmektir.
+
+        function BringData(data) {
+            ControlHeader();
+
+
+            $("#tab1").append("<tr>  <td>  " + data.ID + "    </td> <td> " + data.CategoryName + " </td>     <td>" + data.Description + "</td>   <td> <button data-id='" + data.ID + "' value='update' id='btnUpdate" + data.ID + "'  class='btn btn-warning'> Güncelle </button> </td> <td> <button class='btn btn-danger' data-id='" + data.ID + "' value='delete'> Sil </button> </td> <td> <button class='btn btn-primary' data-id='" + data.ID + "' value='select' > Sec   </button> </td>  </tr>");
+        }
+
+        function FetchData(data) {
+            $("#txtID").val(data.ID);
+            $("#txtName").val(data.CategoryName);
+            $("#txtDesc").val(data.Description);
+        }
+
+
+
+        //API'ya ulasım kodlarını yazmadan önce sayfanın render edilme olayının tamamlandıgından emin olmak istiyoruz
+
+
+        $(function () {
+
+            //Kategorileri Listelemek
+
+            $("#btnAll").click(function () {
+
+                //API'ya ulasmak icin ajax metodunu kullanırsınız...Acımı Asyncronous JavaScript And XML olan AJAX sayfanızın görünürde loading yapmadan sayfanın değişmesini sağlar...Bunun yanında API'ya ulasmak icin en rahat yontemlerden biridir...
+
+                $.ajax({
+                    //ajax parametrelerinin ismi önemlidir kafanıza göre yazamazsınız
+                    url: "http://localhost:50759//api/Category/BringCategories",
+                    type: "Get",
+                    success: function (dataList) {
+                        BringDataList(dataList);
+                    }
+
+
+                })
+
+
+
+
+
+            })
+
+
+            //Kategori Getir
+
+            $("#btnID").click(function () {
+
+                $.ajax({
+
+                    url: "http://localhost:50759//api/Category/GetCategory", //burada dilerseniz data parametresinde JSON verisi göndermek yerine URL'e direkt /"+$("#txtID").val() yazılabilir...Ama eger böyle yapacaksanız sakın GetCategory'den sonra slash koymayı unutmayın...Ve bir de bu ancak gitmek istediginiz Action parametresinin ismi id ise gecerlidir...
+                    data: { id: $("#txtID").val() },
+                    type: "Get",
+                    success: function (data) {
+                        BringData(data);
+                    }
+
+                })
+
+
+            })
+
+
+
+            //Kategori Ekle
+
+            $("#btnAdd").click(function () {
+
+                $.ajax({
+
+                    url: "http://localhost:50759//api/Category/AddCategory",
+                    type: "Post",
+                    data: { CategoryName: $("#txtName").val(), Description: $("#txtDesc").val() },
+                    success: function (dataList) {
+                        BringDataList(dataList);
+                    }
+
+
+
+                })
+
+            })
+
+
+            //Kategori Sil
+
+            //Delete yöntemlerinde Data ile server'a veri gönderemezsiniz...O yüzden mecburi bir şekilde parametre verisini URL'den vermeniz gerekir
+
+            $("#btnDelete").click(function () {
+
+                $.ajax({
+
+                    url: "http://localhost:50759//api/Category/DeleteCategory/" + $("#txtID").val(),
+                    type: "Delete",
+                    success: function (dataList) {
+                        BringDataList(dataList);
+                    }
+
+
+
+                })
+
+
+            })
+
+            //Kategori Güncelle
+
+            $("#btnUpdate").click(function () {
+
+                $.ajax({
+
+                    url: "http://localhost:50759//api/Category/UpdateCategory",
+                    type: "Put",
+                    data: { ID: $("#txtID").val(), CategoryName: $("#txtName").val(), Description: $("#txtDesc").val() },
+                    success: function (dataList) {
+                        BringDataList(dataList);
+                    }
+
+                })
+
+
+            })
+
+            //Search Category
+            $("#txtSearch").keyup(function () {
+                $.ajax({
+                    url: "http://localhost:50759//api/Category/SearchCategory",
+                    type: "Get",
+                    data: { item: $(this).val() },
+                    success: function (dataList) {
+                        BringDataList(dataList);
+                    }
+
+
+                })
+
+
+            })
+
+
+
+            //JS EventHandling
+
+            //Update button
+
+            $("#tab1").on("click", "[value=update]", function () {
+
+
+                $.ajax({
+
+                    url: "http://localhost:50759//api/Category/UpdateCategory",
+                    type: "Put",
+                    data: { ID: $(this).attr("data-id"), CategoryName: $("#txtName").val(), Description: $("#txtDesc").val() },
+                    success: function (dataList) {
+                        BringDataList(dataList);
+                    }
+
+                })
+
+
+            })
+
+            //Delete Button
+
+            $("#tab1").on("click", "[value=delete]", function () {
+
+
+                $.ajax({
+
+                    url: "http://localhost:50759//api/Category/DeleteCategory/" + $(this).attr("data-id"),
+                    type: "Delete",
+                    success: function (dataList) {
+                        BringDataList(dataList);
+                    }
+
+
+
+                })
+
+
+
+            })
+
+
+            //Select Button
+            $("#tab1").on("click", "[value=select]", function () {
+
+                $.ajax({
+
+                    url: "http://localhost:50759//api/Category/GetCategory", //burada dilerseniz data parametresinde JSON verisi göndermek yerine URL'e direkt /"+$("#txtID").val() yazılabilir...Ama eger böyle yapacaksanız sakın GetCategory'den sonra slash koymayı unutmayın...Ve bir de bu ancak gitmek istediginiz Action parametresinin ismi id ise gecerlidir...
+                    data: { id: $(this).attr("data-id") },
+                    type: "Get",
+                    success: function (data) {
+                        FetchData(data);
+                    }
+
+                })
+
+
+
+            })
+
+
+        })
+
+
+
+    </script>
+
+
+</body>
+</html>
